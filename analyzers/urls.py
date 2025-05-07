@@ -2,7 +2,7 @@ import os
 import uuid
 import subprocess
 
-SHARED_DIR = "/shared"
+SHARED_DIR = "shared"
 THUG_LOG_DIR = os.path.join(SHARED_DIR, "thug_logs")
 os.makedirs(THUG_LOG_DIR, exist_ok=True)
 
@@ -21,7 +21,7 @@ def analyze_urls_with_thug(urls):
         try:
             subprocess.run([
                 "docker", "exec", "thug",
-                "thug", "-u", url, "-o", f"/shared/thug_logs/report_{uid}", "-v"
+                "thug", "-u", url, "-o", f"shared/thug_logs/report_{uid}", "-v"
             ], check=True)
 
             results.append({

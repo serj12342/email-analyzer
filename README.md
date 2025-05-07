@@ -47,7 +47,7 @@ YC_FOLDER_ID=your_yandex_folder_id
 ```bash
 sudo apt update
 sudo apt install -y build-essential python3-dev libpcre3-dev \
-  libxml2-dev libxslt1-dev libffi-dev libssl-dev
+  libxml2-dev libxslt1-dev libffi-dev libssl-dev autoconf
 
 git clone https://github.com/buffer/libemu.git
 cd libemu

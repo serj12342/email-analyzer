@@ -20,6 +20,7 @@
 
 ### 📦 Установка зависимостей
 ```bash
+sudo apt install python3-pip
 git clone https://github.com/serj12342/email-analyzer
 cd email-analyzer
 pip3 install -r requirements.txt

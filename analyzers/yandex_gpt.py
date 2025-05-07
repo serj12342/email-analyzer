@@ -4,11 +4,26 @@ import logging
 import pkg_resources
 
 # Настройка логирования
-logging.basicConfig(filename='shared/logs/yandex_gpt.log', level=logging.DEBUG)
+log_dir = 'shared/logs'
+os.makedirs(log_dir, exist_ok=True)  # Создаем папку shared/logs
+log_file = os.path.join(log_dir, 'yandex_gpt.log')
+
+# Проверяем права на запись
+try:
+    with open(log_file, 'a') as f:
+        pass
+except Exception as e:
+    print(f"Cannot write to log file {log_file}: {e}")
+    raise
+
+logging.basicConfig(filename=log_file, level=logging.DEBUG, format='%(asctime)s [%(levelname)s] %(message)s')
 
 def summarize_report(report_path):
     auth_token = os.getenv("YC_AUTH")
     folder_id = os.getenv("YC_FOLDER_ID")
+
+    logging.debug(f"YC_AUTH: {'set' if auth_token else 'not set'}")
+    logging.debug(f"YC_FOLDER_ID: {'set' if folder_id else 'not set'}")
 
     if not auth_token or not folder_id:
         logging.error("YC_AUTH or YC_FOLDER_ID not set")
@@ -36,21 +51,23 @@ def summarize_report(report_path):
         logging.debug(f"Report text length: {len(report_text)} characters")
         logging.debug(f"Report text preview: {report_text[:200]}...")
 
-        # Проверяем валидность текста (только ASCII или UTF-8)
+        # Проверяем валидность текста
         try:
             report_text.encode('utf-8')
         except UnicodeEncodeError:
             logging.error("Report contains invalid characters")
             return "❌ Ошибка: Отчет содержит невалидные символы"
 
+        # Инициализация SDK
+        logging.debug("Initializing YCloudML SDK")
         sdk = YCloudML(folder_id=folder_id, auth=auth_token)
-        model = sdk.models.completions("yandexgpt", model_version="latest")  # Пробуем latest
-        model = model.configure(temperature=0.3)
+        model = sdk.models.completions("yandexgpt", model_version="latest")  # Возвращаемся к yandexgpt
+        model = model.configure(temperature=0.3, timeout=60)
 
         messages = [
             {
                 "role": "system",
-                "text": "Ты эксперт по кибербезопасности. Твоя задача — анализировать отчеты об анализе подозрительных писем, выделять ключевые моменты и оценивать угрозы. Дай краткую сводку и укажи, есть ли признаки фишинга или вредоносного ПО."
+                "text": "Ты эксперт по кибербезопасности. Твоя задача — анализировать отчеты об анализе подозрительных писем, выделять ключевые моменты и оценивать угрозы. Дай краткую сводку (до 200 слов) и укажи, есть ли признаки фишинга или вредоносного ПО."
             },
             {
                 "role": "user",
@@ -65,6 +82,7 @@ def summarize_report(report_path):
 
         logging.debug(f"Yandex GPT result type: {type(result)}")
         logging.debug(f"Yandex GPT result content: {result}")
+        logging.debug(f"Yandex GPT result dir: {dir(result) if result else 'None'}")
 
         if result is None:
             logging.error("Yandex GPT returned None")

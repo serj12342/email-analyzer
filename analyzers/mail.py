@@ -8,11 +8,14 @@ def extract_urls_from_html(html_body):
 def format_addresses(address_list):
     formatted = []
     for entry in address_list:
-        if isinstance(entry, tuple) and len(entry) == 2:
+        # если это строка — сразу добавляем
+        if isinstance(entry, str):
+            formatted.append(entry)
+        # если это кортеж длины 2 — парсим как (name, email)
+        elif isinstance(entry, tuple) and len(entry) == 2:
             name, email = entry
             formatted.append(f"{name} <{email}>" if name else email)
-        elif isinstance(entry, str):
-            formatted.append(entry)
+        # fallback — просто строка представления
         else:
             formatted.append(str(entry))
     return ", ".join(formatted)

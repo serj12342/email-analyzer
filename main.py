@@ -2,6 +2,7 @@
 import os
 import argparse
 import datetime
+from datetime import datetime, timezone
 from analyzers.mail import parse_email
 from analyzers.urls import analyze_urls_with_thug
 from analyzers.attachments import process_attachments

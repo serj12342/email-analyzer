@@ -7,6 +7,7 @@ def extract_urls_from_html(html_body):
 
 def format_addresses(address_list):
     result = []
+    print(f"DEBUG: address_list = {address_list}")  # Для отладки
     for item in address_list:
         if isinstance(item, tuple):
             if len(item) == 2:
@@ -17,12 +18,22 @@ def format_addresses(address_list):
                     result.append(email)
             elif len(item) == 1:
                 result.append(item[0])  # Только email
+            else:
+                print(f"DEBUG: Unexpected tuple length: {item}")
+                result.append(str(item))  # На случай других неожиданных форматов
         elif isinstance(item, str):
             result.append(item)
+        else:
+            print(f"DEBUG: Unexpected item type: {item}")
+            result.append(str(item))  # На случай других типов
     return ", ".join(result)
 
 def parse_email(eml_path):
-    mail = mailparser.parse_from_file(eml_path)
+    try:
+        mail = mailparser.parse_from_file(eml_path)
+    except Exception as e:
+        print(f"DEBUG: Failed to parse {eml_path}: {e}")
+        raise
 
     html_urls = extract_urls_from_html(mail.body)
     combined_urls = list(set((mail.urls or []) + html_urls))

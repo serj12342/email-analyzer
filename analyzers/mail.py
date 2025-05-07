@@ -1,6 +1,8 @@
 import mailparser
 from bs4 import BeautifulSoup
 
+print("DEBUG: Loading parser module")  # Подтверждение загрузки модуля
+
 def extract_urls_from_html(html_body):
     soup = BeautifulSoup(html_body or "", 'html.parser')
     return [a['href'] for a in soup.find_all('a', href=True)]
@@ -49,5 +51,3 @@ def parse_email(eml_path):
         'urls': combined_urls,
         'attachments': mail.attachments or [],
     }
-
-#

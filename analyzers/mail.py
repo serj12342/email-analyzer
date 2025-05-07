@@ -6,10 +6,16 @@ def extract_urls_from_html(html_body):
     return [a['href'] for a in soup.find_all('a', href=True)]
 
 def format_addresses(address_list):
-    return ", ".join(
-        f"{name} <{email}>" if name else email
-        for name, email in address_list
-    )
+    formatted = []
+    for entry in address_list:
+        if isinstance(entry, tuple) and len(entry) == 2:
+            name, email = entry
+            formatted.append(f"{name} <{email}>" if name else email)
+        elif isinstance(entry, str):
+            formatted.append(entry)
+        else:
+            formatted.append(str(entry))
+    return ", ".join(formatted)
 
 def parse_email(eml_path):
     mail = mailparser.parse_from_file(eml_path)

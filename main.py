@@ -2,7 +2,6 @@
 import os
 import argparse
 import datetime
-from datetime import datetime
 from analyzers.mail import parse_email
 from analyzers.urls import analyze_urls_with_thug
 from analyzers.attachments import process_attachments
@@ -43,7 +42,7 @@ email-analyzer | powered by sad frog intelligence ✉️
 def log_analysis_result(eml_file, summary):
     os.makedirs("shared/logs", exist_ok=True)
     log_path = "shared/logs/analysis.log"
-    timestamp = datetime.utcnow().isoformat()
+    timestamp = datetime.now(timezone.utc).isoformat()
     with open(log_path, "a", encoding="utf-8") as log_file:
         log_file.write(f"[{timestamp}] {eml_file}\n")
         log_file.write(summary + "\n\n")

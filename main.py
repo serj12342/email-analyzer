@@ -1,5 +1,10 @@
 import os
+from dotenv import load_dotenv
+
+# Загрузка переменных из .env
+load_dotenv()
 import time
+
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 

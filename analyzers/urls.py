@@ -1,7 +1,6 @@
 import os
 import uuid
 import subprocess
-import chmod
 
 SHARED_DIR = "shared"
 THUG_LOG_DIR = os.path.join(SHARED_DIR, "thug_logs")

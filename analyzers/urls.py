@@ -12,29 +12,29 @@ def analyze_urls_with_thug(urls):
     for url in urls:
         uid = str(uuid.uuid4())
         output_dir_host = os.path.join(THUG_LOG_DIR, f"report_{uid}")
-        output_dir_container = f"/shared/thug_logs/report_{uid}"
         os.makedirs(output_dir_host, exist_ok=True)
 
+        print(f"[→] Запускаем thug для: {url}")
         try:
-            print(f"[→] Запускаем Thug: {url}")
-            subprocess.run([
-                "docker", "exec", "thug",
-                "thug", url,
-                "-o", output_dir_container,
-                "-v"
-            ], check=True)
+            completed = subprocess.run([
+                "sudo", "docker", "exec", "thug",
+                "thug", url, "-o", f"/shared/thug_logs/report_{uid}", "-v"
+            ], capture_output=True, text=True, check=True)
 
-            # Проверка логов внутри директории
-            files = os.listdir(output_dir_host)
-            artifact_list = [f for f in files if os.path.isfile(os.path.join(output_dir_host, f))]
+            print("[thug stdout]")
+            print(completed.stdout)
+            print("[thug stderr]")
+            print(completed.stderr)
 
             results.append({
                 "url": url,
-                "report_path": output_dir_host,
-                "artifacts": artifact_list
+                "report_dir": output_dir_host
             })
 
         except subprocess.CalledProcessError as e:
+            print(f"[!] Thug error for {url}")
+            print(e.stdout)
+            print(e.stderr)
             results.append({
                 "url": url,
                 "error": f"Thug failed: {str(e)}"

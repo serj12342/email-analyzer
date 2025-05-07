@@ -38,6 +38,14 @@ email-analyzer | powered by sad frog intelligence ✉️
 """
     print(banner)
 
+def log_analysis_result(eml_file, summary):
+    os.makedirs("/shared/logs", exist_ok=True)
+    log_path = "/shared/logs/analysis.log"
+    timestamp = datetime.utcnow().isoformat()
+    with open(log_path, "a", encoding="utf-8") as log_file:
+        log_file.write(f"[{timestamp}] {eml_file}\n")
+        log_file.write(summary + "\n\n")
+
 def main():
     samples_dir = "/samples"
     eml_files = [f for f in os.listdir(samples_dir) if f.endswith(".eml")]
@@ -70,6 +78,8 @@ def main():
         with open(summary_path, 'w', encoding='utf-8') as f:
             f.write(summary)
         print(f"\n[✓] Результат GPT сохранён в: {summary_path}\n")
+
+        log_analysis_result(eml_file, summary)
 
 if __name__ == "__main__":
     print_banner()

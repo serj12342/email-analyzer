@@ -17,7 +17,7 @@ def analyze_urls_with_thug(urls):
         try:
             subprocess.run([
                 "docker", "exec", "thug",
-                "thug", url, "-n", f"/shared/thug_logs/report_{uid}", "-v"
+                "thug", url, "-o", f"/shared/thug_logs/report_{uid}", "-v"
             ], check=True)
 
             results.append({

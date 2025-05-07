@@ -11,22 +11,18 @@ def analyze_urls_with_thug(urls):
 
     for url in urls:
         uid = str(uuid.uuid4())
-        url_file = os.path.join(SHARED_DIR, f"url_{uid}.txt")
-        output_dir = os.path.join(THUG_LOG_DIR, f"report_{uid}")
-        os.makedirs(output_dir, exist_ok=True)
-
-        with open(url_file, "w") as f:
-            f.write(url)
+        output_dir_host = os.path.join(THUG_LOG_DIR, f"report_{uid}")
+        os.makedirs(output_dir_host, exist_ok=True)
 
         try:
             subprocess.run([
                 "docker", "exec", "thug",
-                "thug", "-u", url, "-o", f"shared/thug_logs/report_{uid}", "-v"
+                "thug", url, "-n", f"/shared/thug_logs/report_{uid}", "-v"
             ], check=True)
 
             results.append({
                 "url": url,
-                "report_path": f"shared/thug_logs/report_{uid}"
+                "report_path": output_dir_host
             })
 
         except subprocess.CalledProcessError as e:

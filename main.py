@@ -1,4 +1,3 @@
-# main.py
 import os
 import argparse
 from analyzers.mail import parse_email
@@ -31,8 +30,14 @@ def main(eml_path):
 
     print("[+] Sending report to Yandex GPT...")
     summary = summarize_report(report_path)
+
     print("\n==== SUMMARY FROM GPT ====")
     print(summary)
+
+    summary_path = report_path.replace(".md", "_gpt.txt")
+    with open(summary_path, 'w', encoding='utf-8') as f:
+        f.write(summary)
+    print(f"\n[✓] GPT summary saved to: {summary_path}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Email Threat Analyzer")

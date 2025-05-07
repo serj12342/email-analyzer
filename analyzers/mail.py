@@ -15,7 +15,7 @@ def format_addresses(address_list):
                 if name and name.strip():  # Проверяем, что имя не пустое
                     result.append(f"{name} <{email}>")
                 else:
-                    result.append(email)  # Если имя пустое или отсутствует, используем только email
+                    result.append(email)  # Если имя пустое, используем только email
             elif len(item) == 1:
                 result.append(item[0])  # Только email
             else:
@@ -31,6 +31,8 @@ def format_addresses(address_list):
 def parse_email(eml_path):
     try:
         mail = mailparser.parse_from_file(eml_path)
+        print(f"DEBUG: mail.from_ = {mail.from_}")  # Дополнительная отладка
+        print(f"DEBUG: mail.to = {mail.to}")  # Дополнительная отладка
     except Exception as e:
         print(f"DEBUG: Failed to parse {eml_path}: {e}")
         raise

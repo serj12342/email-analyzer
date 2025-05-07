@@ -14,6 +14,7 @@ services:
       - YC_FOLDER_ID=${YC_FOLDER_ID}
     depends_on:
       - thug
+    command: ["python", "main.py"]
 
   thug:
     build:

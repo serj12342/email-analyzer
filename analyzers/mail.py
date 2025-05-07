@@ -1,7 +1,7 @@
 import mailparser
 from bs4 import BeautifulSoup
 
-print("DEBUG: Loading parser module")  # Подтверждение загрузки модуля
+print("DEBUG: Loading parser module (version 2025-05-08)")  # Подтверждение загрузки
 
 def extract_urls_from_html(html_body):
     soup = BeautifulSoup(html_body or "", 'html.parser')
@@ -9,32 +9,33 @@ def extract_urls_from_html(html_body):
 
 def format_addresses(address_list):
     result = []
-    print(f"DEBUG: address_list = {address_list}")  # Для отладки
+    print(f"DEBUG: Processing address_list = {address_list}")
     for item in address_list:
+        print(f"DEBUG: Processing item = {item}")
         if isinstance(item, tuple):
-            if len(item) == 2:
-                name, email = item
+            if len(item) >= 1:
+                email = item[-1]  # Берем последний элемент (email)
+                name = item[0] if len(item) == 2 else None
                 if name and name.strip():  # Проверяем, что имя не пустое
                     result.append(f"{name} <{email}>")
                 else:
-                    result.append(email)  # Если имя пустое, используем только email
-            elif len(item) == 1:
-                result.append(item[0])  # Только email
+                    result.append(email)  # Если имя пустое или отсутствует, только email
             else:
-                print(f"DEBUG: Unexpected tuple length: {item}")
-                result.append(str(item))  # На случай других форматов
+                print(f"DEBUG: Empty tuple: {item}")
+                result.append(str(item))
         elif isinstance(item, str):
             result.append(item)
         else:
             print(f"DEBUG: Unexpected item type: {item}")
-            result.append(str(item))  # На случай других типов
+            result.append(str(item))
+    print(f"DEBUG: Formatted addresses = {result}")
     return ", ".join(result)
 
 def parse_email(eml_path):
     try:
         mail = mailparser.parse_from_file(eml_path)
-        print(f"DEBUG: mail.from_ = {mail.from_}")  # Дополнительная отладка
-        print(f"DEBUG: mail.to = {mail.to}")  # Дополнительная отладка
+        print(f"DEBUG: mail.from_ = {mail.from_}")
+        print(f"DEBUG: mail.to = {mail.to}")
     except Exception as e:
         print(f"DEBUG: Failed to parse {eml_path}: {e}")
         raise

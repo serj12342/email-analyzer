@@ -61,31 +61,47 @@ def summarize_report(report_path):
         # Инициализация SDK
         logging.debug("Initializing YCloudML SDK")
         sdk = YCloudML(folder_id=folder_id, auth=auth_token)
-        model = sdk.models.completions("yandexgpt", model_version="latest")  # Возвращаемся к yandexgpt
-        model = model.configure(temperature=0.3, timeout=60)
 
-        messages = [
-            {
-                "role": "system",
-                "text": "Ты эксперт по кибербезопасности. Твоя задача — анализировать отчеты об анализе подозрительных писем, выделять ключевые моменты и оценивать угрозы. Дай краткую сводку (до 200 слов) и укажи, есть ли признаки фишинга или вредоносного ПО."
-            },
-            {
-                "role": "user",
-                "text": f"Суммаризируй и оцени следующий отчет об анализе письма:\n\n{report_text}"
-            }
-        ]
+        # Пробуем разные модели
+        models_to_try = [("yandexgpt", "latest"), ("yandexgpt-lite", "latest")]
+        result = None
+        for model_name, model_version in models_to_try:
+            try:
+                logging.debug(f"Trying model: {model_name}, version: {model_version}")
+                model = sdk.models.completions(model_name, model_version=model_version)
+                model = model.configure(temperature=0.3)  # Убрали timeout
 
-        logging.debug(f"Sending request to Yandex GPT with messages: {messages}")
+                messages = [
+                    {
+                        "role": "system",
+                        "text": "Ты эксперт по кибербезопасности. Твоя задача — анализировать отчеты об анализе подозрительных писем, выделять ключевые моменты и оценивать угрозы. Дай краткую сводку (до 200 слов) и укажи, есть ли признаки фишинга или вредоносного ПО."
+                    },
+                    {
+                        "role": "user",
+                        "text": f"Суммаризируй и оцени следующий отчет об анализе письма:\n\n{report_text}"
+                    }
+                ]
 
-        # Выполняем запрос
-        result = model.run(messages)
+                logging.debug(f"Sending request to Yandex GPT with messages: {messages}")
 
-        logging.debug(f"Yandex GPT result type: {type(result)}")
-        logging.debug(f"Yandex GPT result content: {result}")
-        logging.debug(f"Yandex GPT result dir: {dir(result) if result else 'None'}")
+                # Выполняем запрос
+                result = model.run(messages)
+
+                logging.debug(f"Yandex GPT result type: {type(result)}")
+                logging.debug(f"Yandex GPT result content: {result}")
+                logging.debug(f"Yandex GPT result dir: {dir(result) if result else 'None'}")
+
+                if result and isinstance(result, list) and len(result) > 0:
+                    break  # Успешный результат, выходим из цикла
+                else:
+                    logging.warning(f"Model {model_name} returned invalid result: {result}")
+
+            except Exception as e:
+                logging.error(f"Model {model_name} failed: {str(e)}")
+                continue
 
         if result is None:
-            logging.error("Yandex GPT returned None")
+            logging.error("All models failed to return a valid result")
             return "❌ GPT не вернул ответ"
 
         if not isinstance(result, list):

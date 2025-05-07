@@ -1,11 +1,13 @@
 # Dockerfile
-FROM python:3.11-slim
+FROM python:3.11
 
 # Установка системных зависимостей
 RUN apt-get update && apt-get install -y \
-    curl unzip zip rar unrar p7zip-full \
-    libmagic1 \
+    unzip zip rar unrar p7zip-full \
+    libmagic1 libfuzzy-dev libemu-dev \
+    build-essential python3-dev \
     && rm -rf /var/lib/apt/lists/*
+
 
 # Установка Python-зависимостей
 RUN pip install --no-cache-dir \

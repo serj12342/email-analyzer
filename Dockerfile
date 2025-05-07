@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
 
 RUN pip install --no-cache-dir \
     mail-parser requests oletools pefile yara-python rarfile py7zr \
-    yandex-cloud-ml-sdk
+    yandex-cloud-ml-sdk watchdog
 
 # 🔧 Копируем исходный код проекта в контейнер
 WORKDIR /app

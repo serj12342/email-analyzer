@@ -4,6 +4,7 @@ services:
   analyzer:
     build: .
     container_name: email-analyzer
+    working_dir: /app
     volumes:
       - ./samples:/samples
       - ./shared:/shared  # общая папка для обмена

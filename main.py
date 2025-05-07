@@ -39,8 +39,8 @@ email-analyzer | powered by sad frog intelligence ✉️
     print(banner)
 
 def log_analysis_result(eml_file, summary):
-    os.makedirs("/shared/logs", exist_ok=True)
-    log_path = "/shared/logs/analysis.log"
+    os.makedirs("shared/logs", exist_ok=True)
+    log_path = "shared/logs/analysis.log"
     timestamp = datetime.utcnow().isoformat()
     with open(log_path, "a", encoding="utf-8") as log_file:
         log_file.write(f"[{timestamp}] {eml_file}\n")
@@ -57,9 +57,10 @@ def main():
     vt_api_key = os.getenv("VT_API_KEY")
     cape_url = os.getenv("CAPE_URL")
 
-    if not vt_api_key or not cape_url:
-        print("❌ Переменные окружения VT_API_KEY и CAPE_URL обязательны.")
-        return
+    if not vt_api_key:
+        print("[!] VirusTotal API не задан. Пропускаем анализ на VT.")
+    if not cape_url:
+        print("[!] CAPE URL не задан. Пропускаем анализ в CAPE.")
 
     for eml_file in eml_files:
         eml_path = os.path.join(samples_dir, eml_file)

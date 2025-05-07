@@ -1,6 +1,7 @@
 from yandex_cloud_ml_sdk import YCloudML
 import os
 import logging
+import asyncio
 
 # Настройка логирования
 logging.basicConfig(filename='shared/logs/yandex_gpt.log', level=logging.DEBUG)
@@ -21,6 +22,12 @@ def summarize_report(report_path):
             logging.error(f"Report file {report_path} is empty")
             return "❌ Ошибка: Отчет пустой, суммаризация невозможна"
 
+        # Ограничиваем длину текста (например, 10000 символов) для избежания лимитов
+        max_text_length = 10000
+        if len(report_text) > max_text_length:
+            report_text = report_text[:max_text_length] + "... [truncated]"
+            logging.warning(f"Report text truncated to {max_text_length} characters")
+
         logging.debug(f"Report text length: {len(report_text)} characters")
         logging.debug(f"Report text preview: {report_text[:100]}...")
 
@@ -40,17 +47,25 @@ def summarize_report(report_path):
         ]
 
         logging.debug(f"Sending request to Yandex GPT with messages: {messages}")
-        result = model.run(messages)
+
+        # Асинхронный вызов для надежности
+        async def run_model():
+            return await model.async_run(messages)
+
+        result = asyncio.run(run_model())
+
+        logging.debug(f"Yandex GPT result type: {type(result)}")
+        logging.debug(f"Yandex GPT result content: {result}")
 
         if not result:
-            logging.error("Yandex GPT returned empty result")
+            logging.error("Yandex GPT returned None or empty result")
             return "❌ GPT не вернул ответ"
 
         if not isinstance(result, list) or len(result) == 0:
             logging.error(f"Unexpected result format: {type(result)}")
             return "❌ GPT вернул некорректный ответ"
 
-        # Проверяем, что result[0] имеет атрибут text
+        # Проверяем атрибут text
         if hasattr(result[0], 'text') and result[0].text:
             logging.debug(f"Yandex GPT response: {result[0].text}")
             return result[0].text

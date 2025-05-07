@@ -42,12 +42,21 @@ def summarize_report(report_path):
         logging.debug(f"Sending request to Yandex GPT with messages: {messages}")
         result = model.run(messages)
 
-        if result and result[0]["text"]:
-            logging.debug(f"Yandex GPT response: {result[0]['text']}")
-            return result[0]["text"]
-        else:
-            logging.error("Yandex GPT returned empty response")
+        if not result:
+            logging.error("Yandex GPT returned empty result")
             return "❌ GPT не вернул ответ"
+
+        if not isinstance(result, list) or len(result) == 0:
+            logging.error(f"Unexpected result format: {type(result)}")
+            return "❌ GPT вернул некорректный ответ"
+
+        # Проверяем, что result[0] имеет атрибут text
+        if hasattr(result[0], 'text') and result[0].text:
+            logging.debug(f"Yandex GPT response: {result[0].text}")
+            return result[0].text
+        else:
+            logging.error("Yandex GPT result has no text attribute or text is empty")
+            return "❌ GPT не вернул текст ответа"
 
     except Exception as e:
         logging.error(f"Yandex GPT error: {str(e)}")

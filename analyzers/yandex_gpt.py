@@ -116,20 +116,26 @@ def summarize_report(report_path):
             logger.error("Yandex GPT returned None")
             return "❌ GPT не вернул ответ"
 
-        if not isinstance(result, list):
-            logger.error(f"Unexpected result format: {type(result)}")
+        # Проверяем, является ли результат объектом GPTModelResult
+        if not hasattr(result, 'alternatives'):
+            logger.error(f"Result does not have 'alternatives' attribute: {type(result)}")
             return "❌ GPT вернул некорректный ответ"
 
-        if len(result) == 0:
-            logger.error("Yandex GPT returned empty list")
+        alternatives = result.alternatives
+        if not alternatives or not isinstance(alternatives, (list, tuple)):
+            logger.error(f"Alternatives is empty or not a list/tuple: {type(alternatives)}")
             return "❌ GPT вернул пустой ответ"
 
-        # Проверяем атрибут text
-        if hasattr(result[0], 'text') and result[0].text:
-            logger.debug(f"Yandex GPT response: {result[0].text}")
-            return result[0].text
+        if len(alternatives) == 0:
+            logger.error("Alternatives list is empty")
+            return "❌ GPT вернул пустой ответ"
+
+        # Проверяем атрибут text в первом элементе alternatives
+        if hasattr(alternatives[0], 'text') and alternatives[0].text:
+            logger.debug(f"Yandex GPT response: {alternatives[0].text}")
+            return alternatives[0].text
         else:
-            logger.error("Yandex GPT result has no text attribute or text is empty")
+            logger.error("Yandex GPT alternative has no text attribute or text is empty")
             return "❌ GPT не вернул текст ответа"
 
     except Exception as e:

@@ -8,16 +8,16 @@ def extract_urls_from_html(html_body):
 def format_addresses(address_list):
     formatted = []
     for entry in address_list:
-        # если это строка — сразу добавляем
-        if isinstance(entry, str):
-            formatted.append(entry)
-        # если это кортеж длины 2 — парсим как (name, email)
-        elif isinstance(entry, tuple) and len(entry) == 2:
-            name, email = entry
-            formatted.append(f"{name} <{email}>" if name else email)
-        # fallback — просто строка представления
-        else:
-            formatted.append(str(entry))
+        try:
+            if isinstance(entry, str):
+                formatted.append(entry)
+            elif isinstance(entry, (list, tuple)) and len(entry) == 2:
+                name, email = entry
+                formatted.append(f"{name} <{email}>" if name else email)
+            else:
+                formatted.append(str(entry))
+        except Exception as e:
+            formatted.append(f"[Invalid address: {entry}]")
     return ", ".join(formatted)
 
 def parse_email(eml_path):

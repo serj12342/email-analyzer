@@ -1,0 +1,9 @@
+mail-parser
+requests
+oletools
+pefile
+yara-python
+rarfile
+py7zr
+yandex-cloud
+git+https://github.com/buffer/thug.git

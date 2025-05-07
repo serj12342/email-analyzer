@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  analyzer:
+    build: .
+    container_name: email-analyzer
+    volumes:
+      - ./samples:/samples
+      - ./shared:/shared  # общая папка для обмена
+    environment:
+      - VT_API_KEY=${VT_API_KEY}
+      - CAPE_URL=http://localhost:8000
+      - YC_AUTH=${YC_AUTH}
+      - YC_FOLDER_ID=${YC_FOLDER_ID}
+    depends_on:
+      - thug
+
+  thug:
+    build:
+      context: ./thug
+    container_name: thug
+    volumes:
+      - ./shared:/shared
+    command: tail -f /dev/null  # thug будет ждать команд

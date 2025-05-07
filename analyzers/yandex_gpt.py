@@ -15,10 +15,11 @@ def summarize_report(report_path):
         return "🔕 GPT отключен: переменные YC_AUTH и YC_FOLDER_ID не заданы."
 
     try:
-        # Логируем версию yandex_cloud_ml_sdk
+        # Логируем версию SDK
         sdk_version = pkg_resources.get_distribution("yandex_cloud_ml_sdk").version
         logging.debug(f"Using yandex_cloud_ml_sdk version: {sdk_version}")
 
+        # Читаем отчет
         with open(report_path, 'r', encoding='utf-8') as f:
             report_text = f.read().strip()
 
@@ -26,17 +27,24 @@ def summarize_report(report_path):
             logging.error(f"Report file {report_path} is empty")
             return "❌ Ошибка: Отчет пустой, суммаризация невозможна"
 
-        # Ограничиваем длину текста (10000 символов)
+        # Ограничиваем длину текста
         max_text_length = 10000
         if len(report_text) > max_text_length:
             report_text = report_text[:max_text_length] + "... [truncated]"
             logging.warning(f"Report text truncated to {max_text_length} characters")
 
         logging.debug(f"Report text length: {len(report_text)} characters")
-        logging.debug(f"Report text preview: {report_text[:100]}...")
+        logging.debug(f"Report text preview: {report_text[:200]}...")
+
+        # Проверяем валидность текста (только ASCII или UTF-8)
+        try:
+            report_text.encode('utf-8')
+        except UnicodeEncodeError:
+            logging.error("Report contains invalid characters")
+            return "❌ Ошибка: Отчет содержит невалидные символы"
 
         sdk = YCloudML(folder_id=folder_id, auth=auth_token)
-        model = sdk.models.completions("yandexgpt", model_version="rc")
+        model = sdk.models.completions("yandexgpt", model_version="latest")  # Пробуем latest
         model = model.configure(temperature=0.3)
 
         messages = [
@@ -52,19 +60,23 @@ def summarize_report(report_path):
 
         logging.debug(f"Sending request to Yandex GPT with messages: {messages}")
 
-        # Используем синхронный run()
+        # Выполняем запрос
         result = model.run(messages)
 
         logging.debug(f"Yandex GPT result type: {type(result)}")
         logging.debug(f"Yandex GPT result content: {result}")
 
-        if not result:
-            logging.error("Yandex GPT returned None or empty result")
+        if result is None:
+            logging.error("Yandex GPT returned None")
             return "❌ GPT не вернул ответ"
 
-        if not isinstance(result, list) or len(result) == 0:
+        if not isinstance(result, list):
             logging.error(f"Unexpected result format: {type(result)}")
             return "❌ GPT вернул некорректный ответ"
+
+        if len(result) == 0:
+            logging.error("Yandex GPT returned empty list")
+            return "❌ GPT вернул пустой ответ"
 
         # Проверяем атрибут text
         if hasattr(result[0], 'text') and result[0].text:

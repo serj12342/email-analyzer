@@ -52,46 +52,59 @@ def log_analysis_result(eml_file, summary):
         log_file.write(f"[{timestamp}] {eml_file}\n")
         log_file.write(summary + "\n\n")
 
+
 def analyze_file(eml_file):
-    eml_path = os.path.join(SAMPLES_DIR, eml_file)
-    print(f"[→] Анализ файла: {eml_file}")
-    mail_data = parse_email(eml_path)
-    thug_results = analyze_urls_with_thug(mail_data['urls'])
+    try:
+        print(f"[→] Анализ файла: {eml_file}")
+        eml_path = os.path.join(SAMPLES_DIR, eml_file)
+        print(f"[📂] Путь к файлу: {eml_path}")
 
-    vt_api_key = os.getenv("VT_API_KEY")
-    cape_url = os.getenv("CAPE_URL")
+        mail_data = parse_email(eml_path)
+        print(f"[✉️] Заголовки письма: {mail_data.get('subject')} | От: {mail_data.get('from')}")
+        print(f"[🔗] Найдено URL-ов: {len(mail_data.get('urls', []))}")
 
-    attachment_results = process_attachments(mail_data['attachments'], vt_api_key, cape_url)
-    report_path = generate_report(mail_data, thug_results, attachment_results)
+        thug_results = analyze_urls_with_thug(mail_data['urls'])
+        print(f"[🧪] Результаты thug: {thug_results}")
 
-    summary = summarize_report(report_path)
-    print("\n==== 📄 Итог от GPT ====")
-    print(summary)
+        vt_api_key = os.getenv("VT_API_KEY")
+        cape_url = os.getenv("CAPE_URL")
 
-    summary_path = report_path.replace(".md", "_gpt.txt")
-    with open(summary_path, 'w', encoding='utf-8') as f:
-        f.write(summary)
+        attachment_results = process_attachments(mail_data['attachments'], vt_api_key, cape_url)
+        print(f"[📎] Результаты анализа вложений: {attachment_results}")
 
-    print(f"[✓] Результат GPT сохранён в: {summary_path}\n")
-    log_analysis_result(eml_file, summary)
+        report_path = generate_report(mail_data, thug_results, attachment_results)
+        print(f"[📄] Сгенерирован отчёт: {report_path}")
+
+        summary = summarize_report(report_path)
+        print("\n==== 📄 Итог от GPT ====")
+        print(summary)
+
+        summary_path = report_path.replace(".md", "_gpt.txt")
+        with open(summary_path, 'w', encoding='utf-8') as f:
+            f.write(summary)
+
+        print(f"[✓] Результат GPT сохранён в: {summary_path}\n")
+        log_analysis_result(eml_file, summary)
+    except Exception as e:
+        print(f"[!] Ошибка при анализе {eml_file}: {e}")
+
 
 class NewEmailHandler(FileSystemEventHandler):
     def on_created(self, event):
         if not event.is_directory and event.src_path.endswith(".eml"):
             filename = os.path.basename(event.src_path)
             if filename not in PROCESSED:
-                time.sleep(1)  # чуть подождать чтобы файл дописался
-                try:
-                    analyze_file(filename)
-                    PROCESSED.add(filename)
-                except Exception as e:
-                    print(f"[!] Ошибка при анализе {filename}: {e}")
+                time.sleep(1)  # подождать, пока файл будет записан
+                analyze_file(filename)
+                PROCESSED.add(filename)
+
 
 def main():
     print_banner()
 
     os.makedirs(SAMPLES_DIR, exist_ok=True)
     already_existing = [f for f in os.listdir(SAMPLES_DIR) if f.endswith(".eml")]
+    print(f"[🔍] Найдено .eml файлов: {len(already_existing)}")
     for f in already_existing:
         analyze_file(f)
         PROCESSED.add(f)
@@ -108,6 +121,7 @@ def main():
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
+
 
 if __name__ == "__main__":
     main()

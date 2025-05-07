@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 
 PROCESSED = set()
 SAMPLES_DIR = "samples"
+
 def print_banner():
     banner = r"""
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⡴⠁⣠⣶⠞⠁⠀⠀⠀⠀⠀⠈⠑⠒⠤⡀⠀⠀⣀⡠⠔⠒⠉⠉⠉⠙⠛⠿⣶⡄⠀⠀⠀⠈⣷⠀⠀⠀⠀⠀⠀
@@ -52,6 +53,8 @@ def log_analysis_result(eml_file, summary):
         log_file.write(f"[{timestamp}] {eml_file}\n")
         log_file.write(summary + "\n\n")
 
+def format_addresses(addr_list):
+    return ", ".join([f"{name} <{email}>" if name else email for name, email in addr_list])
 
 def analyze_file(eml_file):
     try:
@@ -60,7 +63,7 @@ def analyze_file(eml_file):
         print(f"[📂] Путь к файлу: {eml_path}")
 
         mail_data = parse_email(eml_path)
-        print(f"[✉️] Заголовки письма: {mail_data.get('subject')} | От: {mail_data.get('from')}")
+        print(f"[✉️] Заголовки письма: {mail_data.get('subject')} | От: {format_addresses(mail_data.get('from', []))}")
         print(f"[🔗] Найдено URL-ов: {len(mail_data.get('urls', []))}")
 
         thug_results = analyze_urls_with_thug(mail_data['urls'])

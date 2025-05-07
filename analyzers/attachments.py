@@ -7,14 +7,15 @@ import rarfile
 import py7zr
 from oletools.olevba import VBA_Parser
 
-
 def save_attachment(attachment, out_dir):
     filename = attachment['filename'] or 'unnamed'
     filepath = os.path.join(out_dir, filename)
     with open(filepath, 'wb') as f:
-        f.write(attachment['payload'])
+        payload = attachment['payload']
+        if isinstance(payload, str):
+            payload = payload.encode('utf-8')
+        f.write(payload)
     return filepath
-
 
 def extract_archive(filepath, extract_dir):
     try:
@@ -31,7 +32,6 @@ def extract_archive(filepath, extract_dir):
         return str(e)
     return None
 
-
 def analyze_office_file(filepath):
     results = {}
     try:
@@ -43,8 +43,9 @@ def analyze_office_file(filepath):
         results['error'] = str(e)
     return results
 
-
 def send_to_virustotal(filepath, api_key):
+    if not api_key:
+        return {'skipped': 'VT_API_KEY not set'}
     try:
         with open(filepath, 'rb') as f:
             r = requests.post(
@@ -56,8 +57,9 @@ def send_to_virustotal(filepath, api_key):
     except Exception as e:
         return {'error': str(e)}
 
-
 def send_to_cape(filepath, cape_url):
+    if not cape_url:
+        return {'skipped': 'CAPE_URL not set'}
     try:
         with open(filepath, 'rb') as f:
             r = requests.post(
@@ -67,7 +69,6 @@ def send_to_cape(filepath, cape_url):
             return r.json()
     except Exception as e:
         return {'error': str(e)}
-
 
 def process_attachments(attachments, vt_api_key, cape_url):
     results = []

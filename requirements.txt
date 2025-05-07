@@ -7,3 +7,4 @@ rarfile
 py7zr
 yandex-cloud-ml-sdk
 watchdog
+thug

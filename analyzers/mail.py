@@ -12,15 +12,15 @@ def format_addresses(address_list):
         if isinstance(item, tuple):
             if len(item) == 2:
                 name, email = item
-                if name:
+                if name and name.strip():  # Проверяем, что имя не пустое
                     result.append(f"{name} <{email}>")
                 else:
-                    result.append(email)
+                    result.append(email)  # Если имя пустое или отсутствует, используем только email
             elif len(item) == 1:
                 result.append(item[0])  # Только email
             else:
                 print(f"DEBUG: Unexpected tuple length: {item}")
-                result.append(str(item))  # На случай других неожиданных форматов
+                result.append(str(item))  # На случай других форматов
         elif isinstance(item, str):
             result.append(item)
         else:

@@ -1,28 +1,54 @@
 from yandex_cloud_ml_sdk import YCloudML
 import os
+import logging
 
+# Настройка логирования
+logging.basicConfig(filename='shared/logs/yandex_gpt.log', level=logging.DEBUG)
 
 def summarize_report(report_path):
     auth_token = os.getenv("YC_AUTH")
     folder_id = os.getenv("YC_FOLDER_ID")
 
     if not auth_token or not folder_id:
+        logging.error("YC_AUTH or YC_FOLDER_ID not set")
         return "🔕 GPT отключен: переменные YC_AUTH и YC_FOLDER_ID не заданы."
 
-    with open(report_path, 'r', encoding='utf-8') as f:
-        report_text = f.read()
-
     try:
+        with open(report_path, 'r', encoding='utf-8') as f:
+            report_text = f.read().strip()
+
+        if not report_text:
+            logging.error(f"Report file {report_path} is empty")
+            return "❌ Ошибка: Отчет пустой, суммаризация невозможна"
+
+        logging.debug(f"Report text length: {len(report_text)} characters")
+        logging.debug(f"Report text preview: {report_text[:100]}...")
+
         sdk = YCloudML(folder_id=folder_id, auth=auth_token)
         model = sdk.models.completions("yandexgpt", model_version="rc")
         model = model.configure(temperature=0.3)
-        result = model.run([
-            {"role": "system", "text": ""},
+
+        messages = [
+            {
+                "role": "system",
+                "text": "Ты эксперт по кибербезопасности. Твоя задача — анализировать отчеты об анализе подозрительных писем, выделять ключевые моменты и оценивать угрозы. Дай краткую сводку и укажи, есть ли признаки фишинга или вредоносного ПО."
+            },
             {
                 "role": "user",
-                "text": f"Суммаризируй и оцени следующий отчёт об анализе письма:\n\n{report_text}"
+                "text": f"Суммаризируй и оцени следующий отчет об анализе письма:\n\n{report_text}"
             }
-        ])
-        return result[0]["text"] if result else "❌ GPT не вернул ответ"
+        ]
+
+        logging.debug(f"Sending request to Yandex GPT with messages: {messages}")
+        result = model.run(messages)
+
+        if result and result[0]["text"]:
+            logging.debug(f"Yandex GPT response: {result[0]['text']}")
+            return result[0]["text"]
+        else:
+            logging.error("Yandex GPT returned empty response")
+            return "❌ GPT не вернул ответ"
+
     except Exception as e:
+        logging.error(f"Yandex GPT error: {str(e)}")
         return f"❌ Ошибка при обращении к Yandex GPT: {e}"

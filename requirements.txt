@@ -6,3 +6,4 @@ yara-python
 rarfile
 py7zr
 yandex-cloud-ml-sdk
+watchdog

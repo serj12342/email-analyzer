@@ -47,11 +47,11 @@ def log_analysis_result(eml_file, summary):
         log_file.write(summary + "\n\n")
 
 def main():
-    samples_dir = "/samples"
+    samples_dir = "samples"
     eml_files = [f for f in os.listdir(samples_dir) if f.endswith(".eml")]
 
     if not eml_files:
-        print("[!] Нет .eml файлов в папке /samples. Поместите хотя бы один.")
+        print("[!] Нет .eml файлов в папке samples. Поместите хотя бы один.")
         return
 
     vt_api_key = os.getenv("VT_API_KEY")

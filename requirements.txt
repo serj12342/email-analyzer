@@ -5,5 +5,5 @@ pefile
 yara-python
 rarfile
 py7zr
-yandex-cloud
+yandex-cloud-ml-sdk
 git+https://github.com/buffer/thug.git

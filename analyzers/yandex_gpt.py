@@ -1,29 +1,28 @@
-# analyzers/yandex_gpt.py
+from yandex_cloud_ml_sdk import YCloudML
 import os
-from yandex_cloud import SDK
-
-# Требуется предварительно настроенный OAuth-токен или сервисный аккаунт с правами
-# и установленная переменная окружения YC_TOKEN или конфиг в ~/.config/yandex-cloud
-
-sdk = SDK()
 
 
 def summarize_report(report_path):
+    auth_token = os.getenv("YC_AUTH")
+    folder_id = os.getenv("YC_FOLDER_ID")
+
+    if not auth_token or not folder_id:
+        return "🔕 GPT отключен: переменные YC_AUTH и YC_FOLDER_ID не заданы."
+
     with open(report_path, 'r', encoding='utf-8') as f:
         report_text = f.read()
 
-    prompt = f"""
-    Сформируй краткое резюме и рекомендации на основе этого отчета об анализе письма:
-    ===
-    {report_text}
-    ===
-    """
-
-    model = sdk.models.completions("gpt", model_version="latest")
-    result = model.complete(
-        prompt=prompt,
-        temperature=0.3,
-        max_tokens=500,
-        stream=False
-    )
-    return result['result']['alternatives'][0]['message']['text']
+    try:
+        sdk = YCloudML(folder_id=folder_id, auth=auth_token)
+        model = sdk.models.completions("yandexgpt", model_version="rc")
+        model = model.configure(temperature=0.3)
+        result = model.run([
+            {"role": "system", "text": ""},
+            {
+                "role": "user",
+                "text": f"Суммаризируй и оцени следующий отчёт об анализе письма:\n\n{report_text}"
+            }
+        ])
+        return result[0]["text"] if result else "❌ GPT не вернул ответ"
+    except Exception as e:
+        return f"❌ Ошибка при обращении к Yandex GPT: {e}"

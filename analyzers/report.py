@@ -1,4 +1,3 @@
-# analyzers/report.py
 import os
 import datetime
 
@@ -25,7 +24,13 @@ def generate_report(mail_data, thug_results, attachment_results):
             if 'error' in result:
                 f.write(f"  - ❌ Error: {result['error']}\n")
             else:
-                f.write(f"  - ✅ Report Dir: {result['report_dir']}\n")
+                f.write(f"  - ✅ Report Dir: {result['report_path']}\n")
+                if result.get('artifacts'):
+                    f.write("  - 📦 Artifacts:\n")
+                    for file in result['artifacts']:
+                        f.write(f"    - {file}\n")
+                else:
+                    f.write("  - ⚠️ No artifacts found.\n")
 
         f.write("\n## 📎 Attachment Analysis\n")
         for result in attachment_results:

@@ -1,0 +1,25 @@
+From: attacker@example.com
+To: victim@example.com
+Subject: Important Document
+Date: Tue, 7 May 2024 12:34:56 +0300
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="BOUNDARY"
+
+--BOUNDARY
+Content-Type: text/html; charset="UTF-8"
+
+<html>
+  <body>
+    <p>Hello,</p>
+    <p>Please review the document at this secure link:</p>
+    <p><a href="http://malicious.example.com/doc">View Document</a></p>
+  </body>
+</html>
+
+--BOUNDARY
+Content-Type: application/zip
+Content-Disposition: attachment; filename="invoice.zip"
+Content-Transfer-Encoding: base64
+
+UEsDBAoAAAAAA...fakebase64data...AAA=
+--BOUNDARY--

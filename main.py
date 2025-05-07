@@ -1,5 +1,5 @@
+# main.py
 import os
-import sys
 import argparse
 from analyzers.mail import parse_email
 from analyzers.urls import analyze_urls_with_thug
@@ -7,7 +7,14 @@ from analyzers.attachments import process_attachments
 from analyzers.report import generate_report
 from analyzers.yandex_gpt import summarize_report
 
-def main(eml_path, vt_api_key, cape_url):
+def main(eml_path):
+    vt_api_key = os.getenv("VT_API_KEY")
+    cape_url = os.getenv("CAPE_URL")
+
+    if not vt_api_key or not cape_url:
+        print("❌ Переменные окружения VT_API_KEY и CAPE_URL обязательны.")
+        exit(1)
+
     print("[+] Parsing email...")
     mail_data = parse_email(eml_path)
 
@@ -30,8 +37,6 @@ def main(eml_path, vt_api_key, cape_url):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Email Threat Analyzer")
     parser.add_argument("--eml", required=True, help="Path to .eml file")
-    parser.add_argument("--vt-key", required=True, help="VirusTotal API key")
-    parser.add_argument("--cape-url", required=True, help="CAPE API URL")
     args = parser.parse_args()
 
-    main(args.eml, args.vt_key, args.cape_url)
+    main(args.eml)

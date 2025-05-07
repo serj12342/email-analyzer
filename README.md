@@ -19,16 +19,20 @@
 docker build -t email-analyzer .
 ```
 
-### 📥 Пример запуска:
+### 📥 Пример `.env` файла:
+```env
+VT_API_KEY=your_virustotal_key
+CAPE_URL=http://localhost:8000
+```
+
+### ▶️ Пример запуска:
 ```bash
-docker run --rm -v $(pwd)/samples:/samples email-analyzer \
-  --eml /samples/sample.eml \
-  --vt-key <YOUR_VT_API_KEY> \
-  --cape-url http://cape:8000
+docker run --rm --env-file .env -v $(pwd)/samples:/samples email-analyzer \
+  --eml /samples/sample.eml
 ```
 
 > `sample.eml` — файл письма для анализа.  
-> VirusTotal API ключ и URL до CAPEv2 обязательны.
+> Ключи передаются через переменные окружения.
 
 ---
 
@@ -63,6 +67,7 @@ email-analyzer/
 ├── Dockerfile
 ├── requirements.txt
 ├── entrypoint.sh
+├── .env.example
 └── README.md
 ```
 

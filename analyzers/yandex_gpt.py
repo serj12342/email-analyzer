@@ -1,7 +1,7 @@
 from yandex_cloud_ml_sdk import YCloudML
 import os
 import logging
-import asyncio
+import pkg_resources
 
 # Настройка логирования
 logging.basicConfig(filename='shared/logs/yandex_gpt.log', level=logging.DEBUG)
@@ -15,6 +15,10 @@ def summarize_report(report_path):
         return "🔕 GPT отключен: переменные YC_AUTH и YC_FOLDER_ID не заданы."
 
     try:
+        # Логируем версию yandex_cloud_ml_sdk
+        sdk_version = pkg_resources.get_distribution("yandex_cloud_ml_sdk").version
+        logging.debug(f"Using yandex_cloud_ml_sdk version: {sdk_version}")
+
         with open(report_path, 'r', encoding='utf-8') as f:
             report_text = f.read().strip()
 
@@ -22,7 +26,7 @@ def summarize_report(report_path):
             logging.error(f"Report file {report_path} is empty")
             return "❌ Ошибка: Отчет пустой, суммаризация невозможна"
 
-        # Ограничиваем длину текста (например, 10000 символов) для избежания лимитов
+        # Ограничиваем длину текста (10000 символов)
         max_text_length = 10000
         if len(report_text) > max_text_length:
             report_text = report_text[:max_text_length] + "... [truncated]"
@@ -48,11 +52,8 @@ def summarize_report(report_path):
 
         logging.debug(f"Sending request to Yandex GPT with messages: {messages}")
 
-        # Асинхронный вызов для надежности
-        async def run_model():
-            return await model.async_run(messages)
-
-        result = asyncio.run(run_model())
+        # Используем синхронный run()
+        result = model.run(messages)
 
         logging.debug(f"Yandex GPT result type: {type(result)}")
         logging.debug(f"Yandex GPT result content: {result}")
